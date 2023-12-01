@@ -1,4 +1,8 @@
-use std::env;
+use std::{
+    env,
+    io::{self, Read},
+    process::exit,
+};
 
 fn part2(input: &str) -> &str {
     todo!();
@@ -8,16 +12,16 @@ fn part1(input: &str) -> &str {
 }
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let part = args[1].parse::<u32>().unwrap();
-    let mut input = String::new();
-    let stdin = std::io::stdin();
-    loop {
-        match stdin.read_line(&mut input) {
-            Ok(0) => break,
-            Ok(_) => continue,
-            _ => continue,
-        }
+    if args.len() <= 1 {
+        println!("First argument must be the part number");
+        exit(1);
     }
+    let part = args[1].parse::<u32>().expect("Not a valid number :/");
+    let mut input = String::new();
+    io::stdin()
+        .read_to_string(&mut input)
+        .expect("Failed to read from stdin");
+    dbg!(&input);
     match part {
         1 => {
             let output = part1(&input);
@@ -28,7 +32,7 @@ fn main() {
             println!("{output}");
         }
         _ => {
-            println!("not valid input madge");
+            println!("Part number must be 1 or 2");
         }
     }
 }
