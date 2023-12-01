@@ -21,15 +21,32 @@ fn part2(input: &str) -> String {
         });
     }
     for line in input.split("\n").filter(|x| !x.is_empty()) {
-        let mut copy = line.to_string();
-        for s in str_repr_arr.iter() {
-            copy = copy.replace(s, format!(",{},", s).as_str());
+        let mut nums: Vec<char> = Vec::new();
+        let chars = line.chars();
+        for (i, ch) in chars.enumerate() {
+            if let Some(_) = ch.to_digit(10) {
+                nums.push(ch);
+                continue;
+            }
+            for j in 2..=4 {
+                if i + j >= line.len() {
+                    break;
+                }
+                if str_repr_arr.contains(&&line[i..=i + j]) {
+                    let x: Vec<&NumMapping> = num_map
+                        .iter()
+                        .filter(|x| x.str_repr == line[i..=i + j])
+                        .collect();
+                    nums.push(std::char::from_digit(x.first().unwrap().num, 10).unwrap());
+                }
+            }
         }
-
-        println!("{:?}", copy);
+        let mut temp = String::new();
+        temp.push(*nums.first().unwrap());
+        temp.push(*nums.last().unwrap());
+        count += temp.parse::<u32>().unwrap();
     }
-    todo!()
-    // count.to_string()
+    count.to_string()
 }
 fn part1(input: &str) -> String {
     let mut count = 0;
