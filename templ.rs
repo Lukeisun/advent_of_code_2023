@@ -4,10 +4,10 @@ use std::{
     process::exit,
 };
 
-fn part2(input: &str) -> &str {
+fn part2(input: &str) -> String {
     todo!();
 }
-fn part1(input: &str) -> &str {
+fn part1(input: &str) -> String {
     todo!();
 }
 fn main() {
