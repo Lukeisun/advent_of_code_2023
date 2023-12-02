@@ -11,7 +11,7 @@ fn part1(input: &str) -> String {
     todo!();
 }
 fn lines(input: &str) -> Vec<&str> {
-    input.split("\n").filter(|x| !x.is_empty())
+    input.split("\n").filter(|x| !x.is_empty()).collect()
 }
 fn main() {
     let args: Vec<String> = env::args().collect();
