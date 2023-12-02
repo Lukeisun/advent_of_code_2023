@@ -8,6 +8,9 @@ struct NumMapping {
     str_repr: String,
     num: u32,
 }
+fn lines(input: &str) -> Vec<&str> {
+    input.split("\n").filter(|x| !x.is_empty()).collect()
+}
 fn part2(input: &str) -> String {
     let mut count = 0;
     let mut num_map: Vec<NumMapping> = Vec::new();
@@ -20,7 +23,7 @@ fn part2(input: &str) -> String {
             num: (i as u32) + 1,
         });
     }
-    for line in input.split("\n").filter(|x| !x.is_empty()) {
+    for line in lines(&input) {
         let mut nums: Vec<char> = Vec::new();
         let chars = line.chars();
         for (i, ch) in chars.enumerate() {

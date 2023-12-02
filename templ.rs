@@ -10,6 +10,9 @@ fn part2(input: &str) -> String {
 fn part1(input: &str) -> String {
     todo!();
 }
+fn lines(input: &str) -> Vec<&str> {
+    input.split("\n").filter(|x| !x.is_empty())
+}
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() <= 1 {
