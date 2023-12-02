@@ -21,7 +21,6 @@ fn main() {
     io::stdin()
         .read_to_string(&mut input)
         .expect("Failed to read from stdin");
-    dbg!(&input);
     match part {
         1 => {
             let output = part1(&input);

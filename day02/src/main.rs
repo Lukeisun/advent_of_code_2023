@@ -3,17 +3,9 @@ use std::{
     io::{self, Read},
     process::exit,
 };
-#[derive(Debug)]
-struct Cubes {
-    color: String,
-    num: u32,
-}
 fn part2(input: &str) -> String {
-    let red_cubes = 12;
-    let green_cubes = 13;
-    let blue_cubes = 14;
     let mut possible_game_ids: Vec<u32> = Vec::new();
-    'outer: for (i, line) in input.split("\n").filter(|x| !x.is_empty()).enumerate() {
+    for line in input.split("\n").filter(|x| !x.is_empty()) {
         let line = line.to_string();
         let game_split: Vec<&str> = line.split(":").collect();
         let sets: Vec<&str> = game_split[1].split(";").collect();
@@ -22,43 +14,21 @@ fn part2(input: &str) -> String {
         let mut max_green = 0;
         for set in sets {
             let tokens: Vec<&str> = set.split_whitespace().collect();
-            let mut red = Cubes {
-                color: "red".to_string(),
-                num: 0,
-            };
-            let mut blue = Cubes {
-                color: "blue".to_string(),
-                num: 0,
-            };
-            let mut green = Cubes {
-                color: "green".to_string(),
-                num: 0,
-            };
             for x in tokens.chunks(2) {
                 let num = x[0].parse::<u32>().unwrap();
                 if x[1].contains("red") {
-                    if num > max_red {
-                        max_red = num;
-                    }
-                    red.num += num;
+                    max_red = num.max(max_red);
                 }
                 if x[1].contains("blue") {
-                    if num > max_blue {
-                        max_blue = num;
-                    }
-                    blue.num += num;
+                    max_blue = num.max(max_blue);
                 }
                 if x[1].contains("green") {
-                    if num > max_green {
-                        max_green = num;
-                    }
-                    green.num += num
+                    max_green = num.max(max_green);
                 }
             }
         }
         possible_game_ids.push(max_red * max_blue * max_green);
     }
-    dbg!(&possible_game_ids);
     let s: u32 = possible_game_ids.into_iter().sum();
     s.to_string()
 }
@@ -73,43 +43,33 @@ fn part1(input: &str) -> String {
         let sets: Vec<&str> = game_split[1].split(";").collect();
         for set in sets {
             let tokens: Vec<&str> = set.split_whitespace().collect();
-            let mut red = Cubes {
-                color: "red".to_string(),
-                num: 0,
-            };
-            let mut blue = Cubes {
-                color: "blue".to_string(),
-                num: 0,
-            };
-            let mut green = Cubes {
-                color: "green".to_string(),
-                num: 0,
-            };
+            let mut red = 0;
+            let mut blue = 0;
+            let mut green = 0;
             for x in tokens.chunks(2) {
                 let num = x[0].parse::<u32>().unwrap();
                 if x[1].contains("red") {
-                    if red.num + num > red_cubes {
+                    if red + num > red_cubes {
                         continue 'outer;
                     }
-                    red.num += num;
+                    red += num;
                 }
                 if x[1].contains("blue") {
-                    if blue.num + num > blue_cubes {
+                    if blue + num > blue_cubes {
                         continue 'outer;
                     }
-                    blue.num += num;
+                    blue += num;
                 }
                 if x[1].contains("green") {
-                    if green.num + num > green_cubes {
+                    if green + num > green_cubes {
                         continue 'outer;
                     }
-                    green.num += num
+                    green += num
                 }
             }
         }
         possible_game_ids.push((i as u32) + 1);
     }
-    dbg!(&possible_game_ids);
     let s: u32 = possible_game_ids.into_iter().sum();
     s.to_string()
 }
@@ -124,7 +84,6 @@ fn main() {
     io::stdin()
         .read_to_string(&mut input)
         .expect("Failed to read from stdin");
-    dbg!(&input);
     match part {
         1 => {
             let output = part1(&input);
