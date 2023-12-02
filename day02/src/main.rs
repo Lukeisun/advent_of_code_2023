@@ -16,14 +16,11 @@ fn part2(input: &str) -> String {
             let tokens: Vec<&str> = set.split_whitespace().collect();
             for x in tokens.chunks(2) {
                 let num = x[0].parse::<u32>().unwrap();
-                if x[1].contains("red") {
-                    max_red = num.max(max_red);
-                }
-                if x[1].contains("blue") {
-                    max_blue = num.max(max_blue);
-                }
-                if x[1].contains("green") {
-                    max_green = num.max(max_green);
+                match x[1] {
+                    color if color.contains("red") => max_red = num.max(max_red),
+                    color if color.contains("blue") => max_blue = num.max(max_blue),
+                    color if color.contains("green") => max_green = num.max(max_green),
+                    _ => (),
                 }
             }
         }
@@ -48,23 +45,26 @@ fn part1(input: &str) -> String {
             let mut green = 0;
             for x in tokens.chunks(2) {
                 let num = x[0].parse::<u32>().unwrap();
-                if x[1].contains("red") {
-                    if red + num > red_cubes {
-                        continue 'outer;
+                match x[1] {
+                    color if color.contains("red") => {
+                        if red + num > red_cubes {
+                            continue 'outer;
+                        }
+                        red += num
                     }
-                    red += num;
-                }
-                if x[1].contains("blue") {
-                    if blue + num > blue_cubes {
-                        continue 'outer;
+                    color if color.contains("blue") => {
+                        if blue + num > blue_cubes {
+                            continue 'outer;
+                        }
+                        blue += num
                     }
-                    blue += num;
-                }
-                if x[1].contains("green") {
-                    if green + num > green_cubes {
-                        continue 'outer;
+                    color if color.contains("green") => {
+                        if green + num > green_cubes {
+                            continue 'outer;
+                        }
+                        green += num
                     }
-                    green += num
+                    _ => (),
                 }
             }
         }
