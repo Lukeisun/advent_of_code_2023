@@ -76,6 +76,7 @@ fn part2(input: &str) -> String {
     let row_len = schematic.len();
     let col_len = schematic[0].len();
     for (gear_idx, _) in gears_map {
+        //                          (value, (starting index))
         let mut first_match: Option<(u32, (usize, usize))> = None;
         let mut second_match: Option<(u32, (usize, usize))> = None;
         for dir in dir_array {
@@ -102,11 +103,13 @@ fn part2(input: &str) -> String {
             } else {
                 let first = first_match.unwrap();
                 let second = second_match.unwrap();
-                if first.1 == second.1 {
-                    first_match = None;
-                    second_match = None;
-                    break;
+                let third = map.get(&curr).copied().unwrap();
+                if first.1 == third.1 || second.1 == third.1 {
+                    continue;
                 }
+                first_match = None;
+                second_match = None;
+                break;
             }
         }
         if first_match.is_some() && second_match.is_some() {
