@@ -68,7 +68,7 @@ fn part2(input: &str) -> String {
             println!("\nseed: {:?}\nto: {:?}\n", seed, to);
             for (key, val) in &map.1 {
                 let contains_start = key.contains(&to.start);
-                let contains_end = key.contains(&to.end);
+                let contains_end = key.contains(&(to.end - 1));
                 println!("\nkey {:?}\nval {:?}", key, val);
                 if contains_start && contains_end {
                     dbg!("BOTH CONTAINS");
