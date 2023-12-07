@@ -55,16 +55,15 @@ fn part2(input: &str) -> String {
         };
         map.insert(src_range, dest_range);
     }
-    println!("{:?}", u_to_v_map);
-    // let mut ranges: Vec<Range<u64>> = seeds.clone();
+    println!("{:#?}", u_to_v_map);
     let mut ranges = HashMap::new();
     for seed in seeds {
         ranges.insert(seed, ());
     }
+
     for map in u_to_v_map.into_iter() {
-        // println!("{:?}", map);
+        println!("{:?}", map);
         let mut temp = HashMap::new();
-        // println!("{:?}", ranges);
         for (range, _) in &ranges {
             let mut handled = false;
             for (src, dest) in &map {
@@ -72,21 +71,17 @@ fn part2(input: &str) -> String {
                 let contains_end = src.contains(&(range.end - 1));
                 if contains_end && contains_start {
                     dbg!("BOTH CONTAINS");
-                    println!("src: {:?} - dest: {:?} - range - {:?}", src, dest, range);
-                    println!("{:?}", temp);
+                    // println!("src: {:?} - dest: {:?} - range - {:?}", src, dest, range);
+                    // println!("{:?}", temp);
                     let start_diff = range.start - src.start;
                     let range_diff = range.end - range.start;
-                    println!(
-                        "{:?} range_diff {} start_diff {}",
-                        src.start + start_diff..src.start + start_diff + range_diff,
-                        range_diff,
-                        start_diff
-                    );
+                    temp.insert(src.start..range.start, ());
+                    temp.insert(range.end..src.end, ());
                     temp.insert(
                         dest.start + start_diff..dest.start + start_diff + range_diff,
                         (),
                     );
-                    println!("{:?}", temp);
+                    // println!("{:?}", temp);
                     handled = true;
                 } else if contains_end && !contains_start {
                     dbg!("END CONTAINS");
@@ -107,7 +102,7 @@ fn part2(input: &str) -> String {
             }
         }
         ranges = temp;
-        // println!("{:#?}", ranges);
+        println!("ranges {:#?}", ranges);
     }
     let mut ranges: Vec<u64> = ranges.into_keys().map(|x| x.start as u64).collect();
     ranges.sort();
