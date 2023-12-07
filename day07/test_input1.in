@@ -1,0 +1,26 @@
+AAAAA 1
+
+AA8AA 1 four of a kind
+AAJAA 1 five of a kind
+JJ8JJ 1 five of a kind 
+
+23332 1 full house
+2JJJ2 1 five of a kind
+J333J 1 five of a kind
+
+TTT98 1 three of a kind
+TTTJ8 1 four of a kind
+TTTJJ 1 five of a kind
+
+23432 1 two pair
+J343J 1 four of a kind
+2J4J2 1 four of a kind
+23J32 1 full house
+
+
+A23A4 1 one pair
+AJ3A4 1 if 1 j, becomes three of a kind
+J23J4 1 if 2 j, becomes  three of a kind
+
+23456 1 high
+J3456 1 only care if 1 j, if so becomes one pair
