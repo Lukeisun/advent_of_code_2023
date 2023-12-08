@@ -24,6 +24,7 @@ fn main() {
     io::stdin()
         .read_to_string(&mut input)
         .expect("Failed to read from stdin");
+    let start = std::time::Instant::now();
     match part {
         1 => {
             let output = part1(&input);
@@ -37,4 +38,5 @@ fn main() {
             println!("Part number must be 1 or 2");
         }
     }
+    dbg!(start.elapsed());
 }
