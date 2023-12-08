@@ -55,59 +55,42 @@ fn part2(input: &str) -> String {
         };
         map.insert(src_range, dest_range);
     }
-    println!("{:#?}", u_to_v_map);
-    let mut ranges = HashMap::new();
+    // println!("{:#?}", u_to_v_map);
+    let u_to_v_map = &*u_to_v_map;
+    let mut vec = Vec::new();
     for seed in seeds {
-        ranges.insert(seed, ());
-    }
-
-    for map in u_to_v_map.into_iter() {
-        println!("{:?}", map);
-        let mut temp = HashMap::new();
-        for (range, _) in &ranges {
-            let mut handled = false;
-            for (src, dest) in &map {
-                let contains_start = src.contains(&range.start);
-                let contains_end = src.contains(&(range.end - 1));
-                if contains_end && contains_start {
-                    dbg!("BOTH CONTAINS");
-                    // println!("src: {:?} - dest: {:?} - range - {:?}", src, dest, range);
-                    // println!("{:?}", temp);
-                    let start_diff = range.start - src.start;
-                    let range_diff = range.end - range.start;
-                    temp.insert(src.start..range.start, ());
-                    temp.insert(range.end..src.end, ());
-                    temp.insert(
-                        dest.start + start_diff..dest.start + start_diff + range_diff,
-                        (),
-                    );
-                    // println!("{:?}", temp);
-                    handled = true;
-                } else if contains_end && !contains_start {
-                    dbg!("END CONTAINS");
-                    temp.insert(range.start..src.start, ());
-                    let diff = range.end - src.start;
-                    temp.insert(dest.start..dest.start + diff, ());
-                    handled = true;
-                } else if contains_start {
-                    dbg!("START CONTAINS");
-                    temp.insert(src.end..range.end, ());
-                    let start_diff = range.start - src.start;
-                    temp.insert(dest.start + start_diff..dest.end, ());
-                    handled = true;
+        let mut ranges = Vec::new();
+        ranges.push(seed);
+        for map in u_to_v_map.into_iter() {
+            let mut applied = Vec::new();
+            for (src, dst) in map {
+                let mut temp = Vec::new();
+                while ranges.len() > 0 {
+                    let curr = ranges.pop().unwrap();
+                    let before = curr.start..curr.end.min(src.start);
+                    let inter = curr.start.max(src.start)..src.end.min(curr.end);
+                    let after = src.end.max(curr.start)..curr.end;
+                    if before.end > before.start {
+                        temp.push(before);
+                    }
+                    if inter.end > inter.start {
+                        applied.push(
+                            inter.start - src.start + dst.start..inter.end - src.start + dst.start,
+                        );
+                    }
+                    if after.end > after.start {
+                        temp.push(after);
+                    }
                 }
+                ranges = temp;
             }
-            if !handled {
-                temp.insert(range.clone(), ());
-            }
+            ranges.append(&mut applied);
         }
-        ranges = temp;
-        println!("ranges {:#?}", ranges);
+        let min = ranges.into_iter().map(|x| x.start).min().unwrap();
+        vec.push(min);
     }
-    let mut ranges: Vec<u64> = ranges.into_keys().map(|x| x.start as u64).collect();
-    ranges.sort();
-    println!("{:#?}\n{}", ranges, ranges[0]);
-    "pog".to_string()
+    println!("{:?}", vec);
+    vec.into_iter().min().unwrap().to_string()
 }
 fn part1(input: &str) -> String {
     // the destination range start, the source range start, and the range length.
