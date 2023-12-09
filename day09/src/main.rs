@@ -5,55 +5,69 @@ use std::{
 };
 
 fn part2(input: &str) -> String {
-         let mut sum = 0;
-    for line in lines(input).into_iter(){
-        let vals: Vec<i32> = line.split_whitespace().map(|x| x.parse::<i32>().unwrap() ).collect();
-         println!("vals {:?}",vals); 
-         let mut v = Vec::new();
-         v.push(vals);
-         while !v.iter().last().unwrap().iter().all(|x: &i32| *x == 0) {
-             let diff: Vec<i32> = v.iter().last().unwrap().windows(2).
-                 map(|chunk| chunk.to_vec())
-                 .flat_map(|chunk| vec!(chunk[1] - chunk[0]))
-                 .collect();
-             println!("diff {:?}", diff);
-             v.push(diff);
+    let mut sum = 0;
+    for line in lines(input).into_iter() {
+        let vals: Vec<i32> = line
+            .split_whitespace()
+            .map(|x| x.parse::<i32>().unwrap())
+            .collect();
+        println!("vals {:?}", vals);
+        let mut v = Vec::new();
+        v.push(vals);
+        while !v.iter().last().unwrap().iter().all(|x: &i32| *x == 0) {
+            let diff: Vec<i32> = v
+                .iter()
+                .last()
+                .unwrap()
+                .windows(2)
+                .map(|chunk| chunk.to_vec())
+                .flat_map(|chunk| vec![chunk[1] - chunk[0]])
+                .collect();
+            println!("diff {:?}", diff);
+            v.push(diff);
         }
-         println!("fin v {:?}", v);
-         let mut prev = 0;
-         for x in v.into_iter().rev() {
-             let first = x[0];
-             prev = first - prev;
-         println!("prev {:?}", prev);
-         }
-         sum += prev;
-         println!("fin prev {:?}", prev);
+        println!("fin v {:?}", v);
+        let mut prev = 0;
+        for x in v.into_iter().rev() {
+            let first = x[0];
+            prev = first - prev;
+            println!("prev {:?}", prev);
+        }
+        sum += prev;
+        println!("fin prev {:?}", prev);
     }
     sum.to_string()
 }
 fn part1(input: &str) -> String {
-         let mut sum = 0;
-    for line in lines(input).into_iter(){
-        let vals: Vec<i32> = line.split_whitespace().map(|x| x.parse::<i32>().unwrap() ).collect();
-         println!("vals {:?}",vals); 
-         let mut v = Vec::new();
-         v.push(vals);
-         while !v.iter().last().unwrap().iter().all(|x: &i32| *x == 0) {
-             let diff: Vec<i32> = v.iter().last().unwrap().windows(2).
-                 map(|chunk| chunk.to_vec())
-                 .flat_map(|chunk| vec!(chunk[1] - chunk[0]))
-                 .collect();
-             println!("diff {:?}", diff);
-             v.push(diff);
+    let mut sum = 0;
+    for line in lines(input).into_iter() {
+        let vals: Vec<i32> = line
+            .split_whitespace()
+            .map(|x| x.parse::<i32>().unwrap())
+            .collect();
+        println!("vals {:?}", vals);
+        let mut v = Vec::new();
+        v.push(vals);
+        while !v.iter().last().unwrap().iter().all(|x: &i32| *x == 0) {
+            let diff: Vec<i32> = v
+                .iter()
+                .last()
+                .unwrap()
+                .windows(2)
+                .map(|chunk| chunk.to_vec())
+                .flat_map(|chunk| vec![chunk[1] - chunk[0]])
+                .collect();
+            println!("diff {:?}", diff);
+            v.push(diff);
         }
-         println!("v {:?}", v);
-         let mut prev = 0;
-         for x in v.into_iter().rev() {
-             let last = x.iter().last().unwrap();
-             prev = last + prev;
-         }
-         sum += prev;
-         println!("prev {:?}", prev);
+        println!("v {:?}", v);
+        let mut prev = 0;
+        for x in v.into_iter().rev() {
+            let last = x.iter().last().unwrap();
+            prev = last + prev;
+        }
+        sum += prev;
+        println!("prev {:?}", prev);
     }
     sum.to_string()
 }
