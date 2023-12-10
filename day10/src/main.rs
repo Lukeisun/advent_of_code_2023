@@ -1,3 +1,4 @@
+use colored::*;
 use std::{
     collections::{HashMap, VecDeque},
     env,
@@ -203,19 +204,26 @@ fn part2(input: &str) -> String {
             num_i += 1;
         }
     }
+
+    // visualize
+    let mut visual = String::new();
     for row in game.clone() {
         let row: Vec<String> = row
             .into_iter()
-            .map(|x| {
-                if x.symbol == "I" {
-                    x.symbol
-                } else {
-                    ".".to_string()
-                }
+            .map(|x| match x.symbol.as_str() {
+                "I" => x.symbol.blue().bold().to_string(),
+                "|" => "┃".truecolor(100, 100, 100).to_string(),
+                "-" => "━".truecolor(100, 100, 100).to_string(),
+                "L" => "┗".truecolor(100, 100, 100).to_string(),
+                "J" => "┛".truecolor(100, 100, 100).to_string(),
+                "7" => "┓".truecolor(100, 100, 100).to_string(),
+                "F" => "┏".truecolor(100, 100, 100).to_string(),
+                _ => ".".black().to_string(),
             })
             .collect();
-        println!("\t{:?}", row.join(" "));
+        visual.push_str(format!("{}\n", row.join("")).as_str());
     }
+    println!("{}", visual);
     num_i.to_string()
 }
 fn part1(input: &str) -> String {
