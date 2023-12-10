@@ -144,67 +144,48 @@ fn part2(input: &str) -> String {
     let mut visited = HashMap::new();
     let visitor = game[s_idx.0][s_idx.1].clone();
     bfs(&game, &game_size, &mut visited, visitor);
-    // for row in game.clone() {
-    //     let row: Vec<String> = row.into_iter().map(|x| x.symbol).collect();
-    //     println!("\t{:?}", row.join(" "));
-    // }
-    // for (k, v) in &visited {
-    //     game[k.0][k.1].symbol = 'V'.to_string();
-    // }
-    let mut candidates = Vec::new();
+    let mut num_i = 0;
     for (i, row) in game.iter_mut().enumerate() {
+        let mut intersections = 0;
+        let mut f_or_l: Option<String> = None;
         for (j, col) in row.iter_mut().enumerate() {
             if !visited.contains_key(&(i, j)) {
                 col.symbol = '.'.to_string();
-                candidates.push((i, j));
             }
-        }
-    }
-    let mut num_i = 0;
-    for candidate in candidates {
-        let mut intersections = 0;
-        let x = candidate.0 + 0;
-        let mut y = candidate.1 + 1;
-        while !(y >= game_size.1) {
-            let mut symbol = &game[x][y].symbol;
-            if symbol == "|" {
+            if col.symbol == "|" {
                 intersections += 1;
             }
-            if symbol == "F" {
-                y += 1;
-                symbol = &game[x][y].symbol;
-                while symbol == "-" && !(y >= game_size.1) {
-                    y += 1;
-                    symbol = &game[x][y].symbol;
-                }
-                if symbol == "7" {
-                    intersections += 2;
-                } else if symbol == "J" {
-                    intersections += 1;
-                }
-            } else if symbol == "L" {
-                y += 1;
-                symbol = &game[x][y].symbol;
-                while symbol == "-" {
-                    y += 1;
-                    symbol = &game[x][y].symbol;
-                }
-                if symbol == "J" {
-                    intersections += 2;
-                } else if symbol == "7" {
-                    intersections += 1;
+            if col.symbol == "F" || col.symbol == "L" {
+                f_or_l = Some(col.symbol.to_string());
+            }
+            if col.symbol == "J" && f_or_l.is_some() {
+                let fl = f_or_l.unwrap();
+                intersections += match fl.as_str() {
+                    "L" => 2,
+                    "F" => 1,
+                    _ => panic!(""),
+                };
+                f_or_l = None;
+            }
+            if col.symbol == "7" && f_or_l.is_some() {
+                let fl = f_or_l.unwrap();
+                intersections += match fl.as_str() {
+                    "F" => 2,
+                    "L" => 1,
+                    _ => panic!(""),
+                };
+                f_or_l = None;
+            }
+            if !visited.contains_key(&(i, j)) {
+                if intersections % 2 == 0 {
+                    col.symbol = ".".to_string();
+                } else {
+                    col.symbol = "I".to_string();
+                    num_i += 1;
                 }
             }
-            y += 1;
-        }
-        if intersections % 2 == 0 {
-            game[candidate.0][candidate.1].symbol = ".".to_string();
-        } else {
-            game[candidate.0][candidate.1].symbol = "I".to_string();
-            num_i += 1;
         }
     }
-
     // visualize
     let mut visual = String::new();
     for row in game.clone() {
