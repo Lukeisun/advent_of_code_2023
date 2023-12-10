@@ -4,173 +4,313 @@ use std::{
     io::{self, Read},
     process::exit,
 };
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum Dir {
     N,
+    E,
     S,
     W,
-    E,
 }
 #[derive(Debug, Clone)]
-enum Pipe {
-    NS,
-    EW,
-    NE,
-    NW,
-    SW,
-    SE,
-    Ground,
-    Starting,
-    Num(usize),
+struct Pipe {
+    dirs: Vec<Dir>,
+    symbol: String,
+    dist: u32,
+    idx: (usize, usize),
 }
+// my general approach for testing if a move is valid
+// is as follows
+// -----
+// if we want to go to a pipe from a certain direction,
+// we check if the pipe's dir array has the opposite of that direction.
+// if so we remove that direction from the Pipe's dir array.
+// eg L has dirs [North, East]
+//  |
+//  L
+//  if we move from L to | here, we check if | has the south direction
+//  in its dir array. It does, so the south direction is popped and we can
+//  only move north from itself. The same thing was done for the L, and whatever
+//  came before it.
+//
+//  For the dir parameter, this is the direction that the previous pipe is coming from.
+//  So when we go from L to |, dir would be north as thats the move we take to get to it.
+//  ----
+//  Maybe there is a better way to do this, but this is what came to mind.
+//  As I was having
 impl Pipe {
-    fn is_north(&self) -> bool {
-        match self {
-            Pipe::NW => true,
-            Pipe::NE => true,
-            Pipe::NS => true,
-            _ => false,
+    fn can_move(&self, dir: &Dir) -> Option<Dir> {
+        match dir {
+            Dir::N => {
+                if self.dirs.contains(&Dir::S) {
+                    Some(Dir::S)
+                } else {
+                    None
+                }
+            }
+            Dir::S => {
+                if self.dirs.contains(&Dir::N) {
+                    Some(Dir::N)
+                } else {
+                    None
+                }
+            }
+            Dir::E => {
+                if self.dirs.contains(&Dir::W) {
+                    Some(Dir::W)
+                } else {
+                    None
+                }
+            }
+            Dir::W => {
+                if self.dirs.contains(&Dir::E) {
+                    Some(Dir::E)
+                } else {
+                    None
+                }
+            }
         }
-    }
-    fn is_south(&self) -> bool {
-        match self {
-            Pipe::SW => true,
-            Pipe::SE => true,
-            Pipe::NS => true,
-            _ => false,
-        }
-    }
-    fn is_east(&self) -> bool {
-        match self {
-            Pipe::EW => true,
-            Pipe::SE => true,
-            Pipe::NE => true,
-            _ => false,
-        }
-    }
-    fn is_west(&self) -> bool {
-        match self {
-            Pipe::EW => true,
-            Pipe::SW => true,
-            Pipe::NW => true,
-            _ => false,
-        }
-    }
-    fn valid(&self, other: &Pipe, from: &Dir) -> bool {
-        if let Pipe::Ground = other {
-            return false;
-        }
-        if let Pipe::Starting = self {
-            return true;
-        }
-        match self {
-            Pipe::NW => other.is_east() || other.is_south(),
-            Pipe::SW => other.is_east() || other.is_north(),
-            Pipe::NS => other.is_north() || other.is_south(),
-            Pipe::EW => other.is_east() || other.is_west(),
-            Pipe::NE => other.is_west() || other.is_south(),
-            Pipe::SE => other.is_west() || other.is_north(),
-            _ => false,
-        }
-        // match other {
-        //     Pipe::NW => self.is_east() || self.is_south(),
-        //     Pipe::SW => self.is_east() || self.is_north(),
-        //     Pipe::NS => match from {
-        //         Dir::N => self.is_north(),
-        //         Dir::S => self.is_south(),
-        //         _ => false,
-        //     },
-        //     Pipe::EW => self.is_east() || self.is_west(),
-        //     Pipe::NE => self.is_west() || self.is_south(),
-        //     Pipe::SE => self.is_west() || self.is_north(),
-        //     _ => false,
-        // }
     }
 }
-fn part2(input: &str) -> String {
-    todo!();
-}
-fn part1(input: &str) -> String {
-    let mut game: Vec<Vec<Pipe>> = Vec::new();
+fn input_to_game(input: &str) -> (Vec<Vec<Pipe>>, (usize, usize)) {
+    let mut game = Vec::new();
     let mut s_idx = (0, 0);
     for (i, line) in lines(input).into_iter().enumerate() {
         let translated: Vec<Pipe> = line
             .chars()
             .enumerate()
             .map(|x| match x.1 {
-                '|' => Pipe::NS,
-                '-' => Pipe::EW,
-                'L' => Pipe::NE,
-                'J' => Pipe::NW,
-                '7' => Pipe::SW,
-                'F' => Pipe::SE,
-                '.' => Pipe::Ground,
+                '|' => Pipe {
+                    dirs: vec![Dir::N, Dir::S],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                '-' => Pipe {
+                    dirs: vec![Dir::E, Dir::W],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                'L' => Pipe {
+                    dirs: vec![Dir::N, Dir::E],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                'J' => Pipe {
+                    dirs: vec![Dir::N, Dir::W],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                '7' => Pipe {
+                    dirs: vec![Dir::S, Dir::W],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                'F' => Pipe {
+                    dirs: vec![Dir::S, Dir::E],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
+                '.' => Pipe {
+                    dirs: vec![],
+                    symbol: x.1.to_string(),
+                    dist: 0,
+                    idx: (i, x.0),
+                },
                 'S' => {
                     s_idx = (i, x.0);
-                    Pipe::Starting
+                    Pipe {
+                        dirs: vec![Dir::N, Dir::S, Dir::W, Dir::E],
+                        symbol: x.1.to_string(),
+                        dist: 0,
+                        idx: (i, x.0),
+                    }
                 }
                 _ => panic!("invalid"),
             })
             .collect();
         game.push(translated);
     }
-    for r in game.clone() {
-        println!("row {:?}", r);
-    }
-    //            N         S       E       W
-    let dirs = [
-        (1, 0, Dir::S),
-        (-1, 0, Dir::N),
-        (0, 1, Dir::E),
-        (0, -1, Dir::W),
-    ];
-    // let dirs = [Dir::N(1, 0), Dir::S(-1, 0), Dir::E(0, 1), Dir::W(0, -1)];
-    let row_len = game.len();
-    let col_len = game[0].len();
-    let mut connected_idxs = Vec::new();
-    let mut q = VecDeque::new();
+    (game, s_idx)
+}
+fn part2(input: &str) -> String {
+    let (mut game, s_idx) = input_to_game(input);
+    let game_size = (game.len(), game[0].len());
     let mut visited = HashMap::new();
-    let x = (s_idx.0, s_idx.1, 0);
-    q.push_front(x);
-    connected_idxs.push(x);
-    while !q.is_empty() {
-        let cur_idx = q.pop_front().unwrap();
-        visited.insert((cur_idx.0, cur_idx.1), ());
-        for dir in &dirs {
-            let dx = dir.0;
-            let dy = dir.1;
-            let x = (cur_idx.0 as i32 + dx) as usize;
-            let y = (cur_idx.1 as i32 + dy) as usize;
-            if x >= row_len || y >= col_len || visited.contains_key(&(x, y)) {
-                continue;
-            }
-            let from_elem = &game[cur_idx.0][cur_idx.1];
-            let to_elem = &game[x][y];
-            if x == 1 && y == 3 {
-                println!(
-                    "{x}, {y} - {} from_elem {:?} to_elem {:?} dirs {:?}",
-                    from_elem.valid(to_elem, &dir.2),
-                    from_elem,
-                    to_elem,
-                    &dir.2
-                );
-            }
-            let dist = cur_idx.2;
-            if from_elem.valid(to_elem, &dir.2) {
-                connected_idxs.push((x, y, dist + 1));
-                q.push_back((x, y, dist + 1));
+    let visitor = game[s_idx.0][s_idx.1].clone();
+    bfs(&game, &game_size, &mut visited, visitor);
+    // for row in game.clone() {
+    //     let row: Vec<String> = row.into_iter().map(|x| x.symbol).collect();
+    //     println!("\t{:?}", row.join(" "));
+    // }
+    // for (k, v) in &visited {
+    //     game[k.0][k.1].symbol = 'V'.to_string();
+    // }
+    let mut candidates = Vec::new();
+    for (i, row) in game.iter_mut().enumerate() {
+        for (j, col) in row.iter_mut().enumerate() {
+            if !visited.contains_key(&(i, j)) {
+                col.symbol = '.'.to_string();
+                candidates.push((i, j));
             }
         }
     }
-    println!("{:?}", connected_idxs);
-    for idx in connected_idxs {
-        // println!("{:?} {:?}", idx, game[idx.0][idx.1]);
-        game[idx.0][idx.1] = Pipe::Num(idx.2);
+    let mut num_i = 0;
+    for candidate in candidates {
+        let mut intersections = 0;
+        let x = candidate.0 + 0;
+        let mut y = candidate.1 + 1;
+        while !(y >= game_size.1) {
+            let mut symbol = &game[x][y].symbol;
+            if symbol == "|" {
+                intersections += 1;
+            }
+            if symbol == "F" {
+                y += 1;
+                symbol = &game[x][y].symbol;
+                while symbol == "-" && !(y >= game_size.1) {
+                    y += 1;
+                    symbol = &game[x][y].symbol;
+                }
+                if symbol == "7" {
+                    intersections += 2;
+                } else if symbol == "J" {
+                    intersections += 1;
+                }
+            } else if symbol == "L" {
+                y += 1;
+                symbol = &game[x][y].symbol;
+                while symbol == "-" {
+                    y += 1;
+                    symbol = &game[x][y].symbol;
+                }
+                if symbol == "J" {
+                    intersections += 2;
+                } else if symbol == "7" {
+                    intersections += 1;
+                }
+            }
+            y += 1;
+        }
+        if intersections % 2 == 0 {
+            game[candidate.0][candidate.1].symbol = ".".to_string();
+        } else {
+            game[candidate.0][candidate.1].symbol = "I".to_string();
+            num_i += 1;
+        }
     }
-    for r in game.clone() {
-        println!("row {:?}", r);
+    for row in game.clone() {
+        let row: Vec<String> = row
+            .into_iter()
+            .map(|x| {
+                if x.symbol == "I" {
+                    x.symbol
+                } else {
+                    ".".to_string()
+                }
+            })
+            .collect();
+        println!("\t{:?}", row.join(" "));
     }
-    todo!();
+    num_i.to_string()
+}
+fn part1(input: &str) -> String {
+    let (mut game, s_idx) = input_to_game(input);
+    let game_size = (game.len(), game[0].len());
+    let mut visited = HashMap::new();
+    let visitor = game[s_idx.0][s_idx.1].clone();
+    bfs(&game, &game_size, &mut visited, visitor);
+    // dfs(&game, &game_size, &mut visited, visitor, 0);
+    for (k, v) in &visited {
+        game[k.0][k.1].symbol = v.to_string();
+    }
+    // for row in game.clone() {
+    //     let row: Vec<String> = row.into_iter().map(|x| x.symbol).collect();
+    //     println!("\t{:?}", row);
+    // }
+    // for row in &game {
+    //     let row: Vec<u32> = row.into_iter().map(|x| x.dist).collect();
+    //     println!("\t{:?}", row);
+    // }
+    // println!("{:?}", visited);
+    visited.into_values().max().unwrap().to_string()
+}
+fn bfs(
+    game: &Vec<Vec<Pipe>>,
+    game_size: &(usize, usize),
+    visited: &mut HashMap<(usize, usize), u32>,
+    visitor: Pipe,
+) {
+    let mut q = VecDeque::new();
+    q.push_front(visitor);
+    while !q.is_empty() {
+        let visitor = q.pop_front().unwrap();
+        visited.insert(visitor.idx, visitor.dist);
+        for dir in &visitor.dirs {
+            let (dx, dy) = match dir {
+                Dir::N => (-1, 0),
+                Dir::S => (1, 0),
+                Dir::W => (0, -1),
+                Dir::E => (0, 1),
+            };
+            let x = (visitor.idx.0 as i32 + dx) as usize;
+            let y = (visitor.idx.1 as i32 + dy) as usize;
+            if x >= game_size.0 || y >= game_size.1 || visited.contains_key(&(x, y)) {
+                continue;
+            }
+            let mut potential_visitor = game[x][y].clone();
+            let pred = potential_visitor.can_move(&dir);
+            if let Some(dir) = pred {
+                let dir_idx = potential_visitor
+                    .dirs
+                    .iter()
+                    .position(|x| *x == dir)
+                    .unwrap();
+                potential_visitor.dirs.swap_remove(dir_idx);
+                potential_visitor.dist += visitor.dist + 1;
+                q.push_back(potential_visitor.clone());
+            }
+        }
+    }
+}
+fn dfs(
+    game: &Vec<Vec<Pipe>>,
+    game_size: &(usize, usize),
+    visited: &mut HashMap<(usize, usize), u32>,
+    visitor: &Pipe,
+    dist: u32,
+) -> () {
+    visited.insert(visitor.idx, dist);
+    for dir in &visitor.dirs {
+        let (dx, dy) = match dir {
+            Dir::N => (-1, 0),
+            Dir::S => (1, 0),
+            Dir::W => (0, -1),
+            Dir::E => (0, 1),
+        };
+        let x = (visitor.idx.0 as i32 + dx) as usize;
+        let y = (visitor.idx.1 as i32 + dy) as usize;
+        if x >= game_size.0 || y >= game_size.1 || visited.contains_key(&(x, y)) {
+            continue;
+        }
+        let mut potential_visitor = game[x][y].clone();
+        let pred = potential_visitor.can_move(&dir);
+        if let Some(dir) = pred {
+            let dir_idx = potential_visitor
+                .dirs
+                .iter()
+                .position(|x| *x == dir)
+                .unwrap();
+            potential_visitor.dirs.swap_remove(dir_idx);
+            potential_visitor.dist += 1;
+            dfs(game, game_size, visited, &potential_visitor, dist + 1);
+        }
+    }
+    ()
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").filter(|x| !x.is_empty()).collect()
