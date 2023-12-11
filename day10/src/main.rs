@@ -161,8 +161,8 @@ fn part2(input: &str) -> String {
             if col.symbol == "J" && f_or_l.is_some() {
                 let fl = f_or_l.unwrap();
                 intersections += match fl.as_str() {
-                    "L" => 2,
                     "F" => 1,
+                    "L" => 0,
                     _ => panic!(""),
                 };
                 f_or_l = None;
@@ -170,8 +170,8 @@ fn part2(input: &str) -> String {
             if col.symbol == "7" && f_or_l.is_some() {
                 let fl = f_or_l.unwrap();
                 intersections += match fl.as_str() {
-                    "F" => 2,
                     "L" => 1,
+                    "F" => 0,
                     _ => panic!(""),
                 };
                 f_or_l = None;
