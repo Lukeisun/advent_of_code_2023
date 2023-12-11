@@ -34,9 +34,10 @@ fn part2(input: &str) -> String {
     let expansion_factor = 999_999;
     let mut sum = 0;
     let mut pairs = HashMap::new();
-    for galaxy in &galaxies {
-        for other in &galaxies {
-            if galaxy == other || pairs.contains_key(&(other, galaxy)) {
+    for (i, galaxy) in galaxies.iter().enumerate() {
+        for j in i + 1..galaxies.len() {
+            let other = &galaxies[j];
+            if galaxy == other {
                 continue;
             }
             let greater_row = galaxy.0.max(other.0);
