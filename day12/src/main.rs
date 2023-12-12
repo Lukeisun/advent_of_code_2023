@@ -6,7 +6,45 @@ use std::{
 };
 
 fn part2(input: &str) -> String {
-    todo!();
+    let mut sum = 0;
+    for line in lines(input).into_iter() {
+        let line: Vec<&str> = line.split_whitespace().collect();
+        let row = line[0];
+        let og_arrangements: Vec<u32> = line[1]
+            .split(",")
+            .map(|x| x.parse::<u32>().unwrap())
+            .collect();
+
+        // let groups: Vec<&str> = row.split(".").filter(|x| !x.is_empty()).collect();
+        // let groups: Vec<char> = groups.join(".").chars().collect();
+        let groups: Vec<char> = row.chars().collect();
+        let mut arrangements = Vec::new();
+        let mut g = String::new();
+        for _ in 0..5 {
+            let z = groups.clone().into_iter().collect::<String>();
+            arrangements.append(&mut og_arrangements.clone());
+            g.push_str(&z);
+            g.push('?');
+        }
+        // let groups = groups.join("").chars().collect();
+        // println!(
+        //     "groups {:?} arrangements {:?}",
+        //     &g.chars().collect::<Vec<char>>(),
+        //     arrangements
+        // );
+        println!("{g} arrangements {:?}", arrangements);
+        let mut m = HashMap::new();
+        let c = perm(&g.chars().collect(), &arrangements, 0, 0, &mut m);
+        println!("{c}");
+        let mut s: Vec<String> = m.into_keys().collect();
+        // s.sort();
+        // for z in &s {
+        //     println!("{z}");
+        // }
+        assert!(s.into_iter().count() == c as usize);
+        sum += c;
+    }
+    sum.to_string()
 }
 fn part1(input: &str) -> String {
     let mut sum = 0;
@@ -45,8 +83,7 @@ fn perm(
 ) -> u32 {
     if arra_idx == arrangements.len() {
         let mut counter = 0;
-        let mut groups = groups.clone();
-        println!("{:?}", groups);
+        // println!("{:?}", groups);
         let mut lens: Vec<u32> = Vec::new();
         for c in groups.iter() {
             if *c == '#' {
@@ -60,16 +97,16 @@ fn perm(
         if counter > 0 {
             lens.push(counter);
         }
-        println!("lens {:?}", lens);
+        // println!("lens {:?}", lens);
         let t = lens.into_iter().eq(arrangements.clone().into_iter());
         if !t {
-            println!("hit");
+            // println!("hit");
             return 0;
         }
         let g = groups.into_iter().collect::<String>();
         if m.contains_key(&g) {
             panic!("duplicate");
-            return 0;
+            // return 0;
         }
         m.insert(g.clone(), ());
         return 1;
