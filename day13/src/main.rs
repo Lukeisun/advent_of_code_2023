@@ -1,6 +1,7 @@
 use std::{
     env,
     io::{self, Read},
+    iter,
     process::exit,
 };
 
@@ -43,41 +44,46 @@ fn find_vertical_reflection(board: &Vec<Vec<char>>) -> usize {
     if col_len % 2 == 0 {
         panic!("no even reflections");
     }
-    // let l_split = (col_len / 2, col_len / 2 + 1);
+    // left
     let split = col_len / 2;
-    let mut left_matches = false;
-    for j in 0..col_len - 2 {
-        'outer: for line in board {
-            let line: Vec<char> = line.clone().into_iter().take(col_len - 1 - j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    left_matches = false;
-                    break 'outer;
-                }
+    for i in (1..split + 1).rev() {
+        let mut is_mirror = true;
+        for row in board {
+            println!("{:?}", row);
+            let l_split = &row[0..0 + i];
+            let rev: &Vec<char> = &row.clone().into_iter().rev().collect();
+            let r_split = &rev[0..0 + i];
+            println!(
+                "{:?} {:?}",
+                l_split,
+                *r_split.clone().into_iter().rev().collect()
+            );
+            if l_split != r_split {
+                is_mirror = false;
+                break;
             }
-            left_matches = true;
         }
-        if left_matches == true {
-            return split + j;
+        if is_mirror {
+            return i;
         }
     }
-    // let r_split = (col_len / 2 + 1, col_len / 2 + 2);
-    let split = col_len / 2 + 1;
-    let mut right_matches = false;
-    for j in 0..col_len - 2 {
-        'outer: for line in board {
-            let line: Vec<char> = line.clone().into_iter().skip(1 + j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    right_matches = false;
-                    break 'outer;
-                }
+    for i in (1..split + 1).rev() {
+        let mut is_mirror = true;
+        for row in board {
+            // col_len -2 * i
+            let shift = col_len - 2 * i;
+            println!("{:?}", row);
+            let l_split = &row[shift..shift + i];
+            let rev: &Vec<char> = &row.clone().into_iter().rev().collect();
+            let r_split = &rev[shift..shift + i];
+            println!("{:?} {:?}", l_split, r_split);
+            if l_split != r_split {
+                is_mirror = false;
+                break;
             }
-            right_matches = true;
         }
-        if right_matches == true {
-            eprintln!("r_split {:?} {}", split, j);
-            return split + j;
+        if is_mirror {
+            return (col_len - 2 * i) + i;
         }
     }
     0
@@ -97,41 +103,7 @@ fn find_horizontal_reflection(board: &Vec<Vec<char>>) -> usize {
                 .collect::<Vec<char>>()
         })
         .collect();
-    let split = row_len / 2;
-    let mut up_matches = false;
-    for j in 0..row_len - 2 {
-        'outer: for line in &transposed_board {
-            let line: Vec<char> = line.clone().into_iter().take(row_len - 1 - j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    up_matches = false;
-                    break 'outer;
-                }
-            }
-            up_matches = true;
-        }
-        if up_matches == true {
-            return split + j;
-        }
-    }
-    let split = row_len / 2 + 1;
-    let mut down_matches = false;
-    for j in 0..row_len - 2 {
-        'outer: for line in &transposed_board {
-            let line: Vec<char> = line.clone().into_iter().skip(1 + j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    down_matches = false;
-                    break 'outer;
-                }
-            }
-            down_matches = true;
-        }
-        if down_matches == true {
-            return split + j;
-        }
-    }
-    0
+    find_vertical_reflection(&transposed_board)
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").collect()
