@@ -11,18 +11,18 @@ fn part2(input: &str) -> String {
     // for line in lines(input).into_iter() {
     //     let line: Vec<&str> = line.split_whitespace().collect();
     //     let row = line[0];
-    //     let og_arrangements: Vec<u32> = line[1]
+    //     let og_arrangements: Vec<usize> = line[1]
     //         .split(",")
-    //         .map(|x| x.parse::<u32>().unwrap())
+    //         .map(|x| x.parse::<usize>().unwrap())
     //         .collect();
     //
     //     // let groups: Vec<&str> = row.split(".").filter(|x| !x.is_empty()).collect();
     //     // let groups: Vec<char> = groups.join(".").chars().collect();
-    //     let groups: Vec<char> = row.chars().collect();
+    //     let board: Vec<char> = row.chars().collect();
     //     let mut arrangements = Vec::new();
     //     let mut g = String::new();
     //     for _ in 0..5 {
-    //         let z = groups.clone().into_iter().collect::<String>();
+    //         let z = board.clone().into_iter().collect::<String>();
     //         arrangements.append(&mut og_arrangements.clone());
     //         g.push_str(&z);
     //         g.push('?');
@@ -34,15 +34,14 @@ fn part2(input: &str) -> String {
     //     //     arrangements
     //     // );
     //     println!("{g} arrangements {:?}", arrangements);
-    //     let mut m = HashMap::new();
-    //     let c = perm(&g.chars().collect(), &arrangements, 0, 0, &mut m);
+    //     // let mut m = HashMap::new();
+    //     let c = perm(&g.chars().collect(), &arrangements, 0, 0, 0);
     //     println!("{c}");
-    //     let mut s: Vec<String> = m.into_keys().collect();
+    //     // let mut s: Vec<String> = m.into_keys().collect();
     //     // s.sort();
     //     // for z in &s {
     //     //     println!("{z}");
     //     // }
-    //     assert!(s.into_iter().count() == c as usize);
     //     sum += c;
     // }
     // sum.to_string()
@@ -51,16 +50,15 @@ fn part1(input: &str) -> String {
     let mut sum = 0;
     for line in lines(input).into_iter() {
         let line: Vec<&str> = line.split_whitespace().collect();
-        let row = line[0];
+        let board = line[0];
         let arrangements: Vec<usize> = line[1]
             .split(",")
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
-        let board: Vec<char> = row.chars().collect();
         // let groups = groups.join("").chars().collect();
-        println!("groups {:?} arrangements {:?}", board, arrangements);
+        // println!("groups {:?} arrangements {:?}", board, arrangements);
         // let mut m = HashMap::new();
-        let c = perm(&board, &arrangements, 0, 0, 0);
+        let c = perm(&board, &arrangements, 0);
         println!("{c}");
         // let mut s: Vec<String> = m.into_keys().collect();
         // s.sort();
@@ -71,9 +69,6 @@ fn part1(input: &str) -> String {
         sum += c;
     }
     sum.to_string()
-}
-fn perm(board: &Vec<char>, arrangements: &Vec<usize>, si, ai, counter) -> u64 {
-
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").filter(|x| !x.is_empty()).collect()
@@ -105,3 +100,21 @@ fn main() {
     }
     dbg!(start.elapsed());
 }
+// groups ['?', '?', '?', '?', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.'] arrangements [1, 6, 5]
+//  vlaid 3
+// ['.', '.', '.', '#', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+//  vlaid 3
+// ['.', '.', '#', '.', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+//  vlaid 3
+// ['.', '#', '.', '.', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// valid 3
+// ['#', '.', '.', '.', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// zz 3
+// ['.', '#', '.', '#', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// zz 3
+// ['#', '.', '.', '#', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// zz 3
+// ['#', '.', '#', '.', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// zz 3
+// ['#', '.', '#', '#', '.', '#', '#', '#', '#', '#', '#', '.', '.', '#', '#', '#', '#', '#', '.']
+// 8
