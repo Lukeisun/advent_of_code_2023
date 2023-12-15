@@ -19,10 +19,10 @@ fn part1(input: &str) -> String {
             eprintln!("vertical");
             let vertical = find_vertical_reflection(&board);
             sum += vertical;
-            eprintln!("{vertical}");
-            eprintln!("horiz");
+            eprintln!("res {vertical}");
+            // eprintln!("horiz");
             let horizontal = find_horizontal_reflection(&board);
-            eprintln!("{horizontal}");
+            // eprintln!("{horizontal}");
             sum += horizontal * 100;
             if vertical == 0 && horizontal == 0 {
                 panic!("both are 0");
@@ -43,42 +43,41 @@ fn find_vertical_reflection(board: &Vec<Vec<char>>) -> usize {
     if col_len % 2 == 0 {
         panic!("no even reflections");
     }
-    // let l_split = (col_len / 2, col_len / 2 + 1);
-    let split = col_len / 2;
-    let mut left_matches = false;
-    for j in 0..col_len - 2 {
-        'outer: for line in board {
-            let line: Vec<char> = line.clone().into_iter().take(col_len - 1 - j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    left_matches = false;
-                    break 'outer;
+    // left edge
+    // cols [0, col_len -1)
+    println!("COL_LEN {col_len}");
+    'outer: for len in (1..col_len - 1).rev() {
+        for row in board {
+            println!("{:?}", row);
+            for i in 0..=len / 2 {
+                println!("i {i} len {len} idx {}", len - i);
+                if row[i] != row[len - i] {
+                    continue 'outer;
                 }
             }
-            left_matches = true;
         }
-        if left_matches == true {
-            return split + j;
-        }
+        eprintln!("LEFT MATCHES");
+        // there is a match
+        return len / 2;
     }
-    // let r_split = (col_len / 2 + 1, col_len / 2 + 2);
-    let split = col_len / 2 + 1;
-    let mut right_matches = false;
-    for j in 0..col_len - 2 {
-        'outer: for line in board {
-            let line: Vec<char> = line.clone().into_iter().skip(1 + j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    right_matches = false;
-                    break 'outer;
+    // right edge
+    // (0, col_len-1]
+    // 1 : len
+    // 2 : len - 1
+    // 3 : len - 2...
+    'outer: for len in (1..col_len - 1).rev() {
+        for row in board {
+            println!("{:?}", row);
+            for i in 1..=len / 2 {
+                println!("i {i} len {len} idx {}", len - i);
+                if row[i] != row[len - i] {
+                    continue 'outer;
                 }
             }
-            right_matches = true;
         }
-        if right_matches == true {
-            eprintln!("r_split {:?} {}", split, j);
-            return split + j;
-        }
+        eprintln!("RIGHT MATCHES");
+        // there is a match
+        return len / 2;
     }
     0
 }
@@ -97,41 +96,7 @@ fn find_horizontal_reflection(board: &Vec<Vec<char>>) -> usize {
                 .collect::<Vec<char>>()
         })
         .collect();
-    let split = row_len / 2;
-    let mut up_matches = false;
-    for j in 0..row_len - 2 {
-        'outer: for line in &transposed_board {
-            let line: Vec<char> = line.clone().into_iter().take(row_len - 1 - j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    up_matches = false;
-                    break 'outer;
-                }
-            }
-            up_matches = true;
-        }
-        if up_matches == true {
-            return split + j;
-        }
-    }
-    let split = row_len / 2 + 1;
-    let mut down_matches = false;
-    for j in 0..row_len - 2 {
-        'outer: for line in &transposed_board {
-            let line: Vec<char> = line.clone().into_iter().skip(1 + j).collect();
-            for i in 0..line.len() / 2 {
-                if line[i] != line[line.len() - 1 - i] {
-                    down_matches = false;
-                    break 'outer;
-                }
-            }
-            down_matches = true;
-        }
-        if down_matches == true {
-            return split + j;
-        }
-    }
-    0
+    find_vertical_reflection(&transposed_board)
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").collect()
