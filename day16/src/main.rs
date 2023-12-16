@@ -3,6 +3,8 @@ use std::{
     env,
     io::{self, Read},
     process::exit,
+    sync::mpsc,
+    thread,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -20,29 +22,48 @@ fn part2(input: &str) -> String {
     let row_len = board.len();
     let col_len = board[0].len();
     let mut max = 0;
+    let (tx, rx) = mpsc::channel();
     // DOWN
-    for j in 0..col_len {
-        let mut visited = HashMap::new();
-        go(&board, &Dirs::DOWN, (0, j), &mut visited);
-        max = max.max(visited.len());
-    }
+    let tx_down = tx.clone();
+    let b_down = board.clone();
+    thread::spawn(move || {
+        for j in 0..col_len {
+            let mut visited = HashMap::new();
+            go(&b_down, &Dirs::DOWN, (0, j), &mut visited);
+            tx_down.send(visited.len()).unwrap();
+            // max = max.max(visited.len());
+        }
+    });
     // UP
-    for j in 0..col_len {
-        let mut visited = HashMap::new();
-        go(&board, &Dirs::UP, (row_len - 1, j), &mut visited);
-        max = max.max(visited.len());
-    }
+    let b_up = board.clone();
+    let tx_up = tx.clone();
+    thread::spawn(move || {
+        for j in 0..col_len {
+            let mut visited = HashMap::new();
+            go(&b_up, &Dirs::UP, (row_len - 1, j), &mut visited);
+            tx_up.send(visited.len()).unwrap();
+        }
+    });
     // LEFT
-    for i in 0..row_len {
-        let mut visited = HashMap::new();
-        go(&board, &Dirs::LEFT, (i, col_len - 1), &mut visited);
-        max = max.max(visited.len());
-    }
+    let b_left = board.clone();
+    let tx_left = tx.clone();
+    thread::spawn(move || {
+        for i in 0..row_len {
+            let mut visited = HashMap::new();
+            go(&b_left, &Dirs::LEFT, (i, col_len - 1), &mut visited);
+            tx_left.send(visited.len()).unwrap();
+        }
+    });
     // RIGHT
-    for i in 0..row_len {
-        let mut visited = HashMap::new();
-        go(&board, &Dirs::RIGHT, (i, 0), &mut visited);
-        max = max.max(visited.len());
+    thread::spawn(move || {
+        for i in 0..row_len {
+            let mut visited = HashMap::new();
+            go(&board, &Dirs::RIGHT, (i, 0), &mut visited);
+            tx.send(visited.len()).unwrap();
+        }
+    });
+    for received in rx {
+        max = max.max(received);
     }
     println!("{max}");
     max.to_string()
