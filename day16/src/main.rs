@@ -23,25 +23,25 @@ fn part2(input: &str) -> String {
     // DOWN
     for j in 0..col_len {
         let mut visited = HashMap::new();
-        go(&mut board, &Dirs::DOWN, (0, j), &mut visited);
+        go(&board, &Dirs::DOWN, (0, j), &mut visited);
         max = max.max(visited.len());
     }
     // UP
     for j in 0..col_len {
         let mut visited = HashMap::new();
-        go(&mut board, &Dirs::UP, (row_len - 1, j), &mut visited);
+        go(&board, &Dirs::UP, (row_len - 1, j), &mut visited);
         max = max.max(visited.len());
     }
     // LEFT
     for i in 0..row_len {
         let mut visited = HashMap::new();
-        go(&mut board, &Dirs::LEFT, (i, col_len - 1), &mut visited);
+        go(&board, &Dirs::LEFT, (i, col_len - 1), &mut visited);
         max = max.max(visited.len());
     }
     // RIGHT
     for i in 0..row_len {
         let mut visited = HashMap::new();
-        go(&mut board, &Dirs::RIGHT, (i, 0), &mut visited);
+        go(&board, &Dirs::RIGHT, (i, 0), &mut visited);
         max = max.max(visited.len());
     }
     println!("{max}");
@@ -53,7 +53,7 @@ fn part1(input: &str) -> String {
         board.push(line.chars().collect());
     }
     let mut visited = HashMap::new();
-    go(&mut board, &Dirs::RIGHT, (0, 0), &mut visited);
+    go(&board, &Dirs::RIGHT, (0, 0), &mut visited);
     // for (i, row) in board.iter_mut().enumerate() {
     //     for (j, col) in row.iter_mut().enumerate() {
     //         if *col == '\\' {
@@ -84,7 +84,7 @@ fn part1(input: &str) -> String {
     // num_h.to_string()
 }
 fn go(
-    board: &mut Vec<Vec<char>>,
+    board: &Vec<Vec<char>>,
     dir_enum: &Dirs,
     idx: (usize, usize),
     visited: &mut HashMap<(usize, usize), Vec<Dirs>>,
