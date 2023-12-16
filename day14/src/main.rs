@@ -11,17 +11,20 @@ fn part2(input: &str) -> String {
         board.push(line.chars().collect());
     }
     let dirs = [(-1, 0), (0, -1), (1, 0), (0, 1)];
-    let mut loads = HashMap::new();
+    let mut map = HashMap::new();
     for i in 1..=1000 {
         // eprintln!("{i}");
         for dir in dirs {
             move_dir(&mut board, dir);
         }
         let load = get_load(&board);
-        if loads.contains_key(&load) {
-            println!("{:?} i {i} load {load}", loads.get(&load).unwrap());
+        let board_state: Vec<String> = board.iter().map(|x| x.iter().collect::<String>()).collect();
+        let board_state = board_state.join("");
+        if map.contains_key(&board_state) {
+            println!("{:?} i {i} ", map.get(&board_state).unwrap());
         }
-        loads.insert(load, i);
+        map.insert(board_state, i);
+        // loads.insert(load, i);
     }
     // board
     //     .iter()
