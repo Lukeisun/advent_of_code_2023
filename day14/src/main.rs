@@ -11,52 +11,37 @@ fn part2(input: &str) -> String {
         board.push(line.chars().collect());
     }
     let dirs = [(-1, 0), (0, -1), (1, 0), (0, 1)];
+    let mut loads = HashMap::new();
     for i in 1..=1000 {
         // eprintln!("{i}");
         for dir in dirs {
             move_dir(&mut board, dir);
         }
-        let mut load = 0;
-        for i in 0..board.len() {
-            for j in 0..board[0].len() {
-                if board[i][j] != 'O' {
-                    continue;
-                }
-                load += board.len() - i;
-            }
+        let load = get_load(&board);
+        if loads.contains_key(&load) {
+            println!("{:?} i {i} load {load}", loads.get(&load).unwrap());
         }
-        if load == 64 {
-            println!("{load} {i}");
-        }
+        loads.insert(load, i);
     }
-    board
-        .iter()
-        .for_each(|r| eprintln!("{}", r.iter().collect::<String>()));
-    println!("");
-    let mut load = 0;
-    for i in 0..board.len() {
-        for j in 0..board[0].len() {
-            if board[i][j] != 'O' {
-                continue;
-            }
-            load += board.len() - i;
-        }
-    }
-    load.to_string()
+    // board
+    //     .iter()
+    //     .for_each(|r| eprintln!("{}", r.iter().collect::<String>()));
+    get_load(&board).to_string()
 }
 fn part1(input: &str) -> String {
     let mut board: Vec<Vec<char>> = Vec::new();
     for line in lines(input) {
         board.push(line.chars().collect());
     }
-    // board
-    //     .iter()
-    //     .for_each(|r| eprintln!("{}", r.iter().collect::<String>()));
     move_dir(&mut board, (-1, 0));
     board
         .iter()
         .for_each(|r| eprintln!("{}", r.iter().collect::<String>()));
     // check load;
+    let load = get_load(&board);
+    load.to_string()
+}
+fn get_load(board: &Vec<Vec<char>>) -> usize {
     let mut load = 0;
     for i in 0..board.len() {
         for j in 0..board[0].len() {
@@ -66,7 +51,7 @@ fn part1(input: &str) -> String {
             load += board.len() - i;
         }
     }
-    load.to_string()
+    load
 }
 fn move_dir(board: &mut Vec<Vec<char>>, dir: (i32, i32)) -> () {
     let row_len = board.len();
