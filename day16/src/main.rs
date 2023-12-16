@@ -74,7 +74,6 @@ fn part2(input: &str) -> String {
     }
     drop(tx);
     for received in rx {
-        println!("{received}");
         max = max.max(received);
     }
     println!("{max}");
