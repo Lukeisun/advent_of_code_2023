@@ -38,5 +38,5 @@ fn main() {
             println!("Part number must be 1 or 2");
         }
     }
-    dbg!(start.elapsed());
+    eprintln!(start.elapsed());
 }
