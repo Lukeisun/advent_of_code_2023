@@ -3,7 +3,7 @@ use std::{
     env,
     io::{self, Read},
     process::exit,
-    sync::mpsc,
+    sync::{mpsc, Arc},
     thread,
 };
 
@@ -23,46 +23,58 @@ fn part2(input: &str) -> String {
     let col_len = board[0].len();
     let mut max = 0;
     let (tx, rx) = mpsc::channel();
-    // DOWN
-    let tx_down = tx.clone();
-    let b_down = board.clone();
-    thread::spawn(move || {
-        for j in 0..col_len {
+    let board_shared = Arc::new(board);
+    let mut handles = vec![];
+    //DOWN
+    for j in 0..col_len {
+        let tx_down = tx.clone();
+        let b_down = board_shared.clone();
+        let h = thread::spawn(move || {
             let mut visited = HashMap::new();
             go(&b_down, &Dirs::DOWN, (0, j), &mut visited);
             tx_down.send(visited.len()).unwrap();
-            // max = max.max(visited.len());
-        }
-    });
-    // UP
-    let b_up = board.clone();
-    let tx_up = tx.clone();
-    thread::spawn(move || {
-        for j in 0..col_len {
+        });
+        handles.push(h);
+    }
+    for j in 0..col_len {
+        let b_up = board_shared.clone();
+        let tx_up = tx.clone();
+        let h = thread::spawn(move || {
             let mut visited = HashMap::new();
             go(&b_up, &Dirs::UP, (row_len - 1, j), &mut visited);
             tx_up.send(visited.len()).unwrap();
-        }
-    });
-    // LEFT
-    let b_left = board.clone();
-    let tx_left = tx.clone();
-    thread::spawn(move || {
-        for i in 0..row_len {
+        });
+        handles.push(h);
+    }
+    // // LEFT
+    // let b_left = board.clone();
+    for i in 0..row_len {
+        let b_left = board_shared.clone();
+        let tx_left = tx.clone();
+        let h = thread::spawn(move || {
             let mut visited = HashMap::new();
             go(&b_left, &Dirs::LEFT, (i, col_len - 1), &mut visited);
             tx_left.send(visited.len()).unwrap();
-        }
-    });
-    // RIGHT
-    thread::spawn(move || {
-        for i in 0..row_len {
+        });
+        handles.push(h);
+    }
+    // // RIGHT
+    for i in 0..row_len {
+        let board = board_shared.clone();
+        let tx_up = tx.clone();
+        let h = thread::spawn(move || {
             let mut visited = HashMap::new();
             go(&board, &Dirs::RIGHT, (i, 0), &mut visited);
-            tx.send(visited.len()).unwrap();
-        }
-    });
+            tx_up.send(visited.len()).unwrap();
+        });
+        handles.push(h);
+    }
+    for h in handles {
+        h.join().unwrap();
+    }
+    drop(tx);
     for received in rx {
+        println!("{received}");
         max = max.max(received);
     }
     println!("{max}");
