@@ -1,13 +1,34 @@
 use std::{
     cmp::Ordering,
-    collections::{BinaryHeap, HashMap, VecDeque},
+    collections::{BinaryHeap, HashMap},
     env,
     io::{self, Read},
     process::exit,
-    rc::Rc,
-    u128::MAX,
     usize,
 };
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct Node {
+    idx: (i32, i32),
+    dir: Dir,
+    amount_right: usize,
+    acc: i32,
+}
+impl Node {
+    fn add(&self, dir: (i32, i32)) -> (i32, i32) {
+        (self.idx.0 + dir.0, self.idx.1 + dir.1)
+    }
+}
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.acc.cmp(&other.acc)
+        // other.acc.cmp(&self.acc)
+    }
+}
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Dir {
@@ -33,127 +54,93 @@ impl Dir {
     }
 }
 fn part2(input: &str) -> String {
-    todo!();
+    let mut board: Vec<Vec<u32>> = Vec::new();
+    for line in lines(input) {
+        board.push(line.chars().map(|x| x.to_digit(10).unwrap()).collect());
+    }
+    let loss = dijkstra(&board, 4, 10);
+    loss.to_string()
 }
 fn part1(input: &str) -> String {
     let mut board: Vec<Vec<u32>> = Vec::new();
     for line in lines(input) {
         board.push(line.chars().map(|x| x.to_digit(10).unwrap()).collect());
     }
-    let loss = go(&board, (0, 0), Dir::RIGHT);
+    let loss = dijkstra(&board, 0, 3);
     loss.to_string()
 }
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Node<'a> {
-    idx: (i32, i32),
-    dir: &'a Dir,
-    amount_right: usize,
-    acc: i32,
+fn in_range(idx: (i32, i32), row_len: i32, col_len: i32) -> bool {
+    let row = idx.0;
+    let col = idx.1;
+    return 0 <= row && row < row_len && 0 <= col && col < col_len;
 }
-impl Ord for Node<'_> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.acc.cmp(&other.acc)
-        // other.acc.cmp(&self.acc)
-    }
-}
-impl PartialOrd for Node<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-fn dijkstra(board: &Vec<Vec<u32>>, node: &Node) -> u32 {
+fn dijkstra(board: &Vec<Vec<u32>>, min: usize, max: usize) -> u32 {
     let mut q = BinaryHeap::new();
     let row_len = board.len() as i32;
     let col_len = board[0].len() as i32;
     let target = (row_len - 1, col_len - 1);
-    let mut visited = HashMap::new();
-    let dirs = vec![Dir::UP, Dir::DOWN, Dir::LEFT, Dir::RIGHT];
+    let mut visited: HashMap<((i32, i32), Dir, usize), i32> = HashMap::new();
     let node_d = Node {
-        idx: node.idx,
-        dir: &Dir::DOWN,
-        amount_right: 0,
-        acc: 0,
-    };
-    let node_r = Node {
-        idx: node.idx,
-        dir: &Dir::RIGHT,
+        idx: (0, 0),
+        dir: Dir::DOWN,
         amount_right: 0,
         acc: 0,
     };
     q.push(node_d);
-    q.push(node_r);
-    // q.push(node.clone());
-    while let Some(Node {
-        idx,
-        dir,
-        amount_right,
-        acc,
-    }) = q.pop()
-    {
-        let acc = -1 * acc;
-        let k = (idx, dir, amount_right);
-        if acc > *visited.get(&k).unwrap_or(&i32::MAX) {
-            continue;
-        }
-        visited.insert(k, acc);
-        if idx == target {
+    let node = Node {
+        idx: (0, 0),
+        dir: Dir::RIGHT,
+        amount_right: 0,
+        acc: 0,
+    };
+    q.push(node);
+    while let Some(node) = q.pop() {
+        let k = (node.idx, node.dir.clone(), node.amount_right);
+        let v = visited.get(&k).unwrap_or(&i32::MAX);
+        let acc = -1 * node.acc;
+        if node.idx == target && node.amount_right >= min {
             return acc as u32;
         }
-        let (dx, dy) = dir.get_dir();
-        let (r, c) = (idx.0 + dx, idx.1 + dy);
-        let k = ((r, c), dir, amount_right + 1);
-        if in_range(r, c, row_len, col_len) && amount_right + 1 < 3 && !visited.contains_key(&k) {
-            let next_cost = board[r as usize][c as usize] as i32;
-            let cost = acc + next_cost;
-            let potential = Node {
-                idx: (r, c),
-                dir,
-                amount_right: amount_right + 1,
-                acc: -(cost),
-            };
-            q.push(potential);
+        if acc > *v {
+            continue;
         }
-        let rotated_dirs = dir.rotate();
-        for dir in rotated_dirs {
-            let (dx, dy) = dir.get_dir();
-            // let
-            let (r, c) = (idx.0 + dx, idx.1 + dy);
-            let k = ((r, c), &dir, 0usize);
-            if in_range(r, c, row_len, col_len) && !visited.contains_key(&k) {
-                let next_cost = board[r as usize][c as usize] as i32;
-                let cost = acc + next_cost;
-                let dir = &dirs[dirs.iter().position(|x| *x == dir).unwrap()];
-                q.push(Node {
-                    idx: (r, c),
-                    dir,
-                    amount_right: 0,
-                    acc: -cost,
-                });
+        let mut neighbors = Vec::new();
+        let tup_dir = node.dir.get_dir();
+        let new_idx = node.add(tup_dir);
+        if in_range(new_idx, row_len, col_len) && node.amount_right < max {
+            neighbors.push((new_idx, node.amount_right + 1, node.dir.clone()));
+        }
+        if node.amount_right >= min {
+            let rotated_dirs = node.dir.rotate();
+            for rotated_dir in rotated_dirs {
+                let tup_dir = rotated_dir.get_dir();
+                let new_idx = node.add(tup_dir);
+                if in_range(new_idx, row_len, col_len) {
+                    neighbors.push((new_idx, 1, rotated_dir));
+                }
+            }
+        }
+        for neighbor in neighbors {
+            let n_idx = neighbor.0;
+            let n_val = board[n_idx.0 as usize][n_idx.1 as usize] as i32;
+            let n_right = neighbor.1;
+            let n_dir = neighbor.2;
+            let next_cost = acc + n_val;
+            let next_node = Node {
+                idx: n_idx,
+                dir: n_dir,
+                amount_right: n_right,
+                acc: -next_cost,
+            };
+            let k = (next_node.idx, next_node.dir.clone(), next_node.amount_right);
+            let v = visited.get(&k).unwrap_or(&i32::MAX);
+            if next_cost < *v {
+                visited.insert(k, next_cost);
+                q.push(next_node);
             }
         }
     }
     0
-}
-// do dijkstra
-fn go(board: &Vec<Vec<u32>>, idx: (i32, i32), s_dir: Dir) -> u32 {
-    // let mut visited = HashMap::new();
-    let node_d = Node {
-        idx,
-        dir: &Dir::DOWN,
-        amount_right: 0,
-        acc: 0,
-    };
-    let node_r = Node {
-        idx,
-        dir: &Dir::RIGHT,
-        amount_right: 0,
-        acc: 0,
-    };
-    dijkstra(board, &node_d)
-    // dijkstra(board, &node_r).min(dijkstra(board, &node_d))
-}
-fn in_range(row: i32, col: i32, row_len: i32, col_len: i32) -> bool {
-    return 0 <= row && row < row_len && 0 <= col && col < col_len;
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").filter(|x| !x.is_empty()).collect()
