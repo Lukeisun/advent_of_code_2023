@@ -86,17 +86,25 @@ fn dijkstra(board: &Vec<Vec<u32>>, node: &Node) -> u32 {
             return acc as u32;
         }
         let (dx, dy) = dir.get_dir();
-        let (r, c) = (idx.0 + dx, idx.1 + dy);
-        if in_range(r, c, row_len, col_len) && amount_right + 1 < 3 {
-            let next_cost = board[r as usize][c as usize] as i32;
-            let cost = acc + next_cost;
-            let potential = Node {
-                idx: (r, c),
-                dir,
-                amount_right: amount_right + 1,
-                acc: -(cost),
-            };
-            q.push(potential);
+        let mut r = idx.0;
+        let mut c = idx.1;
+        let mut cost = acc;
+        for i in 0..2 {
+            r += dx;
+            c += dy;
+            if in_range(r, c, row_len, col_len) && amount_right == 0 {
+                let next_cost = board[r as usize][c as usize] as i32;
+                cost += next_cost;
+                let potential = Node {
+                    idx: (r, c),
+                    dir,
+                    amount_right: i + 1,
+                    acc: -(cost),
+                };
+                q.push(potential);
+            } else {
+                break;
+            }
         }
         let rotated_dirs = dir.rotate();
         for dir in rotated_dirs {
