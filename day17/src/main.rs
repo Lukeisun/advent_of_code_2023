@@ -68,7 +68,21 @@ fn dijkstra(board: &Vec<Vec<u32>>, node: &Node) -> u32 {
     let target = (row_len - 1, col_len - 1);
     let mut visited = HashMap::new();
     let dirs = vec![Dir::UP, Dir::DOWN, Dir::LEFT, Dir::RIGHT];
-    q.push(node.clone());
+    let node_d = Node {
+        idx: node.idx,
+        dir: &Dir::DOWN,
+        amount_right: 0,
+        acc: 0,
+    };
+    let node_r = Node {
+        idx: node.idx,
+        dir: &Dir::RIGHT,
+        amount_right: 0,
+        acc: 0,
+    };
+    q.push(node_d);
+    q.push(node_r);
+    // q.push(node.clone());
     while let Some(Node {
         idx,
         dir,
@@ -141,7 +155,8 @@ fn go(board: &Vec<Vec<u32>>, idx: (i32, i32), s_dir: Dir) -> u32 {
         amount_right: 0,
         acc: 0,
     };
-    dijkstra(board, &node_r).min(dijkstra(board, &node_d))
+    dijkstra(board, &node_d)
+    // dijkstra(board, &node_r).min(dijkstra(board, &node_d))
 }
 fn in_range(row: i32, col: i32, row_len: i32, col_len: i32) -> bool {
     return 0 <= row && row < row_len && 0 <= col && col < col_len;
