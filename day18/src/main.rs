@@ -24,7 +24,67 @@ impl Dir {
     }
 }
 fn part2(input: &str) -> String {
-    todo!();
+    let mut dirs = Vec::new();
+    for line in lines(input) {
+        let line: Vec<&str> = line.split_whitespace().collect();
+        let hex_s = &line[2][2..7];
+        let amt = i64::from_str_radix(hex_s, 16).unwrap();
+        let dir = &line[2][7..8];
+        // let d = line[0];
+        let dir = match dir {
+            "0" => Dir::RIGHT,
+            "1" => Dir::DOWN,
+            "2" => Dir::LEFT,
+            "3" => Dir::UP,
+            _ => panic!(),
+        };
+        // let amt = line[1].parse::<u32>().unwrap();
+        dirs.push((dir, amt));
+    }
+    let mut curr_idx = (0, 0);
+    let mut vertices = Vec::new();
+    vertices.push(curr_idx);
+    let mut perim = 0;
+    for d in &dirs {
+        let dir = &d.0;
+        let amt = d.1;
+        perim += amt;
+        // + 1 in dir at end
+        match dir {
+            Dir::RIGHT => {
+                curr_idx = (curr_idx.0, curr_idx.1 + amt);
+                vertices.push(curr_idx);
+            }
+            Dir::LEFT => {
+                curr_idx = (curr_idx.0, curr_idx.1 - amt);
+                vertices.push(curr_idx);
+            }
+            Dir::DOWN => {
+                curr_idx = (curr_idx.0 + amt, curr_idx.1);
+                vertices.push(curr_idx);
+            }
+            Dir::UP => {
+                curr_idx = (curr_idx.0 - amt, curr_idx.1);
+                vertices.push(curr_idx);
+            }
+        }
+    }
+    // look into shoelace + picks
+    let mut area = 0;
+    // neat
+    let mut prev = vertices.last().unwrap();
+    for curr in vertices.iter().take(vertices.len() - 1) {
+        area += (prev.0 * curr.1) - (prev.1 * curr.0);
+        prev = curr;
+    }
+
+    // for w in vertices.windows(2) {
+    //     println!("{:?}", w);
+    //     let prev = w[0];
+    //     let curr = w[1];
+    //     area += (curr.0 + prev.0) * (curr.1 - prev.1);
+    // }
+    ((area.abs() + perim) / 2 + 1).to_string()
 }
 fn part1(input: &str) -> String {
     let mut dirs = Vec::new();
@@ -54,7 +114,7 @@ fn part1(input: &str) -> String {
     board.push_front(VecDeque::from(vec!['.'; col_len as usize + 1]));
     let mut cur_idx = (0, 0);
     let mut h_count = 0;
-    for d in dirs.iter() {
+    for d in &dirs {
         let dir = &d.0;
         let dir_t = dir.get_dir();
         let amt = d.1;
@@ -114,70 +174,36 @@ fn part1(input: &str) -> String {
     for r in &board {
         println!("{:?}", r.iter().collect::<String>());
     }
-    let mut b = board.clone();
-    let num_dots = board
-        .iter()
-        .map(|x| x.iter().filter(|c| **c == '.').count())
-        .fold(0, |acc, n| acc + n);
-    // for (i, row) in board.iter().enumerate() {
-    //     let mut intersections = 0;
-    //     let mut num_in_wall = 0;
-    //     let mut inside = false;
-    //     for (j, col) in row.iter().enumerate() {
-    //         match *col {
-    //             '#' => {
-    //                 // if num_in_wall == 0 {
-    //                 //     intersections += 1;
-    //                 // }
-    //                 // seen_dot = false;
-    //                 num_in_wall += 1;
-    //             }
-    //             '.' => {
-    //                 // num_wall == 0, do nothing
-    //                 // num_wall = 1 do nothing
-    //                 // if in_wall && !inside {
-    //                 //     intersections += 1;
-    //                 // }
-    //                 // if !seen_dot {
-    //                 //     intersections += 1;
-    //                 // }
-    //                 if num_in_wall == 1 {
-    //                     intersections += 1;
-    //                 }
-    //                 if num_in_wall > 1 {
-    //                     if inside {
-    //                         intersections += 1;
-    //                     } else {
-    //                         intersections += 2;
-    //                     }
-    //                 }
-    //                 if intersections % 2 == 1 {
-    //                     inside = true;
-    //                     b[i][j] = 'I';
-    //                 } else {
-    //                     inside = false;
-    //                 }
-    //                 // seen_dot = true;
-    //                 h_count += intersections % 2;
-    //                 num_in_wall = 0;
-    //             }
-    //             _ => panic!(),
-    //         }
-    //         // if *col == '#' && h_neighbors == 0 {
-    //         //     intersections += 1;
-    //         //     h_neighbors = 1;
-    //         // } else if c
-    //         // } else {
-    //         //     if intersections % 2 == 1 {
-    //         //         b[i][j] = 'x';
-    //         //     }
-    //         // }
-    //     }
-    // }
-    for r in &b {
+    let dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    let mut q = VecDeque::new();
+    let r = board.len() as i32;
+    let c = board[0].len() as i32;
+    // cheating a little bc input
+    let mut idx = (r / 2, c / 2);
+    q.push_front(idx);
+    board[idx.0 as usize][idx.1 as usize] = ' ';
+    while let Some((i, j)) = q.pop_front() {
+        for dir in dirs {
+            let (dx, dy) = dir;
+            let (x, y) = (i as i32 + dx, j as i32 + dy);
+            if x < 0 || y < 0 || x >= r || y >= c {
+                continue;
+            }
+            let (x, y) = (x as usize, y as usize);
+            if board[x][y] == '.' {
+                q.push_back((x as i32, y as i32));
+                board[x][y] = ' ';
+            }
+        }
+    }
+    for r in &board {
         println!("{:?}", r.iter().collect::<String>());
     }
-    h_count.to_string()
+    let num_spaces = board
+        .iter()
+        .map(|x| x.iter().filter(|c| **c == ' ').count())
+        .fold(0, |acc, n| acc + n);
+    (num_spaces + h_count).to_string()
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split("\n").filter(|x| !x.is_empty()).collect()
