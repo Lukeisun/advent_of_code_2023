@@ -1,4 +1,4 @@
-use core::{fmt, panic};
+use core::panic;
 use std::{
     env,
     fmt::Debug,
@@ -18,15 +18,70 @@ struct Tape<'a> {
     rules: Vec<Rule<'a>>,
     end: &'a str,
 }
-
+// could maybe bin search the range?
+// find split point, add A's that way
 fn part2(input: &str) -> String {
-    todo!();
+    let (workflows, _) = parse_input(input);
+    println!("{:?}", workflows);
+    "pog".to_string()
 }
 fn part1(input: &str) -> String {
+    let (workflows, ratings) = parse_input(input);
+    let first = workflows.iter().find(|x| x.workflow == "in");
+    let mut a = 0;
+    // x m a s
+    for rating in ratings.chunks(4) {
+        let mut curr_workflow = first.unwrap();
+        'outer: loop {
+            for rule in &curr_workflow.rules {
+                let idx = match rule.part {
+                    "x" => 0,
+                    "m" => 1,
+                    "a" => 2,
+                    "s" => 3,
+                    _ => panic!(),
+                };
+                let cls: Box<dyn Fn(u32) -> bool> = match rule.lt {
+                    true => Box::new(|x| x < rule.amt),
+                    false => Box::new(|x| x > rule.amt),
+                };
+                if cls(rating[idx].1) {
+                    if rule.send_to == "A" || rule.send_to == "R" {
+                        match rule.send_to {
+                            "A" => a += rating.iter().map(|x| x.1).sum::<u32>(),
+                            "R" => (),
+                            _ => panic!(),
+                        };
+                        break 'outer;
+                    }
+                    curr_workflow = workflows
+                        .iter()
+                        .find(|x| x.workflow == rule.send_to)
+                        .unwrap();
+                    continue 'outer;
+                }
+            }
+            // if we didnt match any rules
+            if curr_workflow.end == "A" || curr_workflow.end == "R" {
+                match curr_workflow.end {
+                    "A" => a += rating.iter().map(|x| x.1).sum::<u32>(),
+                    "R" => (),
+                    _ => panic!(),
+                };
+                break 'outer;
+            }
+            curr_workflow = workflows
+                .iter()
+                .find(|x| x.workflow == curr_workflow.end)
+                .unwrap();
+        }
+    }
+    a.to_string()
+}
+fn parse_input(input: &str) -> (Vec<Tape>, Vec<(String, u32)>) {
     let mut in_ratings = false;
     let mut workflows = Vec::new();
     let mut ratings = Vec::new();
-    let mut first = None;
     for line in lines(input) {
         if line.is_empty() {
             in_ratings = true;
@@ -43,7 +98,6 @@ fn part1(input: &str) -> String {
             }
             continue;
         }
-        println!("{line}");
         let line: Vec<&str> = line.split('{').collect();
         let curr_workflow = line[0];
         let rules_s: Vec<&str> = line[1].split(',').collect();
@@ -52,7 +106,6 @@ fn part1(input: &str) -> String {
         let mut rules = Vec::new();
         for rule in rules_s.iter().take(rules_s.len() - 1) {
             let mut lt = false;
-            let mut cond: Box<dyn Fn(u32) -> bool>;
             let sp: Vec<&str> = rule.split(':').collect();
             let send_to = sp[1];
             let part = &sp[0][0..1];
@@ -74,62 +127,7 @@ fn part1(input: &str) -> String {
         };
         workflows.push(tape);
     }
-    for workflow in &workflows {
-        if workflow.workflow == "in" {
-            first = Some(workflow);
-        }
-    }
-    println!("{:?}", workflows);
-    println!("{:?}", first);
-    let mut a = 0;
-    // x m a s
-    for rating in ratings.chunks(4) {
-        let mut curr_workflow = first.unwrap();
-        let mut send_to = curr_workflow.workflow;
-        let mut accepted = false;
-        println!("{:?}", rating);
-        'outer: loop {
-            for rule in &curr_workflow.rules {
-                let idx = match rule.part {
-                    "x" => 0,
-                    "m" => 1,
-                    "a" => 2,
-                    "s" => 3,
-                    _ => panic!(),
-                };
-                let cls: Box<dyn Fn(u32) -> bool> = match rule.lt {
-                    true => Box::new(|x| x < rule.amt),
-                    false => Box::new(|x| x > rule.amt),
-                };
-                if cls(rating[idx].1) {
-                    send_to = rule.send_to;
-                    if send_to == "A" || send_to == "R" {
-                        match send_to {
-                            "A" => a += rating.iter().map(|x| x.1).sum::<u32>(),
-                            "R" => (),
-                            _ => panic!(),
-                        };
-                        break 'outer;
-                    }
-                    curr_workflow = workflows.iter().find(|x| x.workflow == send_to).unwrap();
-                    continue 'outer;
-                }
-            }
-            if curr_workflow.end == "A" || curr_workflow.end == "R" {
-                match curr_workflow.end {
-                    "A" => a += rating.iter().map(|x| x.1).sum::<u32>(),
-                    "R" => (),
-                    _ => panic!(),
-                };
-                break 'outer;
-            }
-            curr_workflow = workflows
-                .iter()
-                .find(|x| x.workflow == curr_workflow.end)
-                .unwrap();
-        }
-    }
-    a.to_string()
+    (workflows, ratings)
 }
 fn lines(input: &str) -> Vec<&str> {
     input.split('\n').collect()
