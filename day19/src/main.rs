@@ -18,13 +18,61 @@ struct Tape<'a> {
     rules: Vec<Rule<'a>>,
     end: &'a str,
 }
-// could maybe bin search the range?
-// find split point, add A's that way
 fn part2(input: &str) -> String {
     let (workflows, _) = parse_input(input);
-    println!("{:?}", workflows);
+    let first = workflows.iter().find(|x| x.workflow == "in");
+    let mut ratings = vec![vec![(1..=4000), (1..=4000), (1..=4000), (1..=4000)]];
+    let mut a = 0;
+    while let Some(rating) = ratings.pop() {
+        let mut curr_workflow = first.unwrap();
+        'outer: loop {
+            for rule in &curr_workflow.rules {
+                let idx = match rule.part {
+                    "x" => 0,
+                    "m" => 1,
+                    "a" => 2,
+                    "s" => 3,
+                    _ => panic!(),
+                };
+                let cls: Box<dyn Fn(u32) -> bool> = match rule.lt {
+                    true => Box::new(|x| x < rule.amt),
+                    false => Box::new(|x| x > rule.amt),
+                };
+                if cls(*rating[idx].start()) {
+                    if rule.send_to == "A" || rule.send_to == "R" {
+                        match rule.send_to {
+                            "A" => a += 1,
+                            "R" => (),
+                            _ => panic!(),
+                        };
+                        break 'outer;
+                    }
+                    curr_workflow = workflows
+                        .iter()
+                        .find(|x| x.workflow == rule.send_to)
+                        .unwrap();
+                    continue 'outer;
+                }
+            }
+            // if we didnt match any rules
+            if curr_workflow.end == "A" || curr_workflow.end == "R" {
+                match curr_workflow.end {
+                    "A" => a += 1,
+                    "R" => (),
+                    _ => panic!(),
+                };
+                break 'outer;
+            }
+            curr_workflow = workflows
+                .iter()
+                .find(|x| x.workflow == curr_workflow.end)
+                .unwrap();
+        }
+    }
+    println!("{a}");
     "pog".to_string()
 }
+// fn find_accepted(workflows: Vec<Tape>
 fn part1(input: &str) -> String {
     let (workflows, ratings) = parse_input(input);
     let first = workflows.iter().find(|x| x.workflow == "in");
